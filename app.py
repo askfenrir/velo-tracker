@@ -228,8 +228,13 @@ def heatmap_data():
                 coord_frequency[coord_key] = coord_frequency.get(coord_key, 0) + 1
     
     # Convert to heatmap format: [lat, lon, intensity]
+    if not coord_frequency:
+        return jsonify([])
+    
+    # Normalize intensity values for better gradient display
+    max_frequency = max(coord_frequency.values())
     heatmap_points = [
-        [coord[0], coord[1], frequency] 
+        [coord[0], coord[1], min(frequency / max_frequency, 1.0)] 
         for coord, frequency in coord_frequency.items()
     ]
     

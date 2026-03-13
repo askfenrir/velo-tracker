@@ -59,15 +59,14 @@
     <canvas id="weeklyChart"></canvas>
 </div>
 
+<h2>Route Heatmap</h2>
+<div id="heatmap" style="height: 400px; margin: 20px 0;"></div>
+
 <h2>By Month</h2>
 {{ recap_table(months) }}
 
 <h2>By Week</h2>
 {{ recap_table(weeks) }}
-
-<h2>Route Heatmap</h2>
-<p>Shows all your cycling routes with intensity based on usage frequency.</p>
-<div id="heatmap" style="height: 400px; margin: 20px 0;"></div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -157,22 +156,27 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data && data.length > 0) {
-                // Create heatmap layer
-                const heat = L.heatLayer(data, {
-                    radius: 8,
-                    blur: 6,
-                    maxZoom: 10,
+                // Normalize intensity values to 0-1 range for better gradient display
+                const maxIntensity = Math.max(...data.map(point => point[2]));
+                const normalizedData = data.map(point => [
+                    point[0], 
+                    point[1], 
+                    point[2] / maxIntensity
+                ]);
+                
+                // Create heatmap layer with adjusted settings
+                const heat = L.heatLayer(normalizedData, {
+                    radius: 15,
+                    blur: 10,
+                    maxZoom: 16,
+                    max: 1.0,
                     gradient: {
-                        0.0: '#313695',
-                        0.1: '#4575b4', 
-                        0.2: '#74add1',
-                        0.3: '#abd9e9',
-                        0.4: '#e0f3f8',
-                        0.5: '#fee090',
-                        0.6: '#fdae61',
-                        0.7: '#f46d43',
-                        0.8: '#d73027',
-                        1.0: '#a50026'
+                        0.0: '#0000ff',  // Blue for low intensity
+                        0.3: '#00ffff',  // Cyan
+                        0.5: '#00ff00',  // Green  
+                        0.7: '#ffff00',  // Yellow
+                        0.9: '#ff8000',  // Orange
+                        1.0: '#ff0000'   // Red for high intensity
                     }
                 }).addTo(heatmap);
 
